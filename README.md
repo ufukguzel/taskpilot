@@ -8,6 +8,7 @@ TaskPilot; komut veya HTTP tabanlı görevleri cron ifadeleriyle zamanlayan, man
 ![python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 ![fastapi](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
 ![react](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
 ![license](https://img.shields.io/badge/license-MIT-blue)
 
 ---
@@ -75,6 +76,16 @@ npm run dev
 
 Pano `http://localhost:5173` adresinde açılır (istekler backend'e proxy'lenir).
 
+### 🐳 Docker Compose ile (tek komut)
+
+Backend + frontend'i tek komutla ayağa kaldır:
+
+```bash
+docker compose up --build
+```
+
+Pano `http://localhost:8080` adresinde açılır (nginx, `/api` ve WebSocket isteklerini backend'e proxy'ler; SQLite verisi `taskpilot_data` volume'ünde kalıcıdır). Üretim için compose dosyasının yanına bir `.env` koyup `SECRET_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` değerlerini geç.
+
 ### Testler
 
 ```bash
@@ -99,8 +110,9 @@ cd backend && pytest -q
 
 - [x] WebSocket ile canlı log akışı
 - [x] Kullanıcı kimlik doğrulama (JWT)
+- [x] Docker Compose ile tek komutla ayağa kaldırma
 - [ ] Görev başarısızlığında e-posta/webhook bildirimi
-- [ ] Docker Compose ile tek komutla ayağa kaldırma
+- [ ] Görev başına ayrıntılı çalışma metrikleri
 
 ## 📄 Lisans
 

@@ -1,8 +1,7 @@
-"""Task execution engine.
+"""Task execution engine with live streaming.
 
-Runs a task (shell command or HTTP request), captures the output, and persists
-a TaskRun record. Executions are wrapped in timeouts so a hung task cannot block
-the scheduler thread indefinitely.
+Runs a task (shell command or HTTP request), streams each output line to
+connected WebSocket clients in real time, and persists a TaskRun record.
 
 Security note: the "command" task type runs shell commands on the host. TaskPilot
 is intended as a self-hosted, single-user tool on a trusted machine. Do not expose
@@ -11,68 +10,118 @@ it to untrusted networks without adding authentication and command allow-listing
 from __future__ import annotations
 
 import subprocess
+import threading
+from collections.abc import Callable
 from datetime import datetime, timezone
 
 import httpx
 from sqlalchemy.orm import Session
 
 from app import models
+from app.events import manager
 
 COMMAND_TIMEOUT_SECONDS = 60
 HTTP_TIMEOUT_SECONDS = 30
-MAX_OUTPUT_CHARS = 10_000
+MAX_OUTPUT_CHARS = 20_000
+
+LineEmitter = Callable[[str], None]
 
 
-def _truncate(text: str) -> str:
-    if len(text) > MAX_OUTPUT_CHARS:
-        return text[:MAX_OUTPUT_CHARS] + "\n... (output truncated)"
-    return text
-
-
-def _run_command(command: str) -> tuple[bool, str]:
+def _run_command(command: str, emit: LineEmitter) -> bool:
+    """Run a shell command, streaming stdout+stderr line by line via ``emit``."""
     try:
-        completed = subprocess.run(  # noqa: S602 - intentional, documented above
+        proc = subprocess.Popen(  # noqa: S602 - intentional, documented above
             command,
             shell=True,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             text=True,
-            timeout=COMMAND_TIMEOUT_SECONDS,
+            bufsize=1,
         )
-        output = (completed.stdout or "") + (completed.stderr or "")
-        ok = completed.returncode == 0
-        return ok, _truncate(f"[exit code: {completed.returncode}]\n{output}".strip())
-    except subprocess.TimeoutExpired:
-        return False, f"Command timed out after {COMMAND_TIMEOUT_SECONDS}s"
-    except Exception as exc:  # noqa: BLE001 - surface any failure to the run log
-        return False, f"Execution error: {exc}"
-
-
-def _run_http(url: str, method: str) -> tuple[bool, str]:
-    try:
-        response = httpx.request(method, url, timeout=HTTP_TIMEOUT_SECONDS, follow_redirects=True)
-        ok = response.is_success
-        body = _truncate(response.text)
-        return ok, f"[HTTP {response.status_code} {response.reason_phrase}]\n{body}"
     except Exception as exc:  # noqa: BLE001
-        return False, f"Request error: {exc}"
+        emit(f"Execution error: {exc}")
+        return False
+
+    timed_out = threading.Event()
+
+    def _kill() -> None:
+        timed_out.set()
+        proc.kill()
+
+    watchdog = threading.Timer(COMMAND_TIMEOUT_SECONDS, _kill)
+    watchdog.start()
+    try:
+        if proc.stdout is not None:
+            for line in proc.stdout:
+                emit(line.rstrip("\n"))
+        proc.wait()
+    finally:
+        watchdog.cancel()
+
+    if timed_out.is_set():
+        emit(f"Command timed out after {COMMAND_TIMEOUT_SECONDS}s")
+        return False
+    emit(f"[exit code: {proc.returncode}]")
+    return proc.returncode == 0
+
+
+def _run_http(url: str, method: str, emit: LineEmitter) -> bool:
+    try:
+        emit(f"{method} {url}")
+        response = httpx.request(method, url, timeout=HTTP_TIMEOUT_SECONDS, follow_redirects=True)
+        emit(f"[HTTP {response.status_code} {response.reason_phrase}]")
+        for line in response.text.splitlines():
+            emit(line)
+        return response.is_success
+    except Exception as exc:  # noqa: BLE001
+        emit(f"Request error: {exc}")
+        return False
 
 
 def execute_task(db: Session, task: models.Task, trigger: str = "manual") -> models.TaskRun:
-    """Execute a task synchronously and store a TaskRun row."""
+    """Execute a task synchronously, streaming events, and store a TaskRun row."""
     run = models.TaskRun(task_id=task.id, status="running", trigger=trigger)
     db.add(run)
     db.commit()
     db.refresh(run)
 
+    manager.publish(
+        {
+            "event": "run_started",
+            "task_id": task.id,
+            "run_id": run.id,
+            "task_name": task.name,
+            "trigger": trigger,
+            "started_at": run.started_at.isoformat(),
+        }
+    )
+
+    collected: list[str] = []
+
+    def emit(line: str) -> None:
+        if sum(len(x) for x in collected) < MAX_OUTPUT_CHARS:
+            collected.append(line)
+        manager.publish({"event": "log", "task_id": task.id, "run_id": run.id, "line": line})
+
     if task.task_type == "http":
-        ok, output = _run_http(task.url or "", task.http_method or "GET")
+        ok = _run_http(task.url or "", task.http_method or "GET", emit)
     else:
-        ok, output = _run_command(task.command or "")
+        ok = _run_command(task.command or "", emit)
 
     run.status = "success" if ok else "failed"
-    run.output = output
+    run.output = "\n".join(collected)
     run.finished_at = datetime.now(timezone.utc)
     db.add(run)
     db.commit()
     db.refresh(run)
+
+    manager.publish(
+        {
+            "event": "run_finished",
+            "task_id": task.id,
+            "run_id": run.id,
+            "status": run.status,
+            "finished_at": run.finished_at.isoformat(),
+        }
+    )
     return run

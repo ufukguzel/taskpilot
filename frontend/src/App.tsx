@@ -4,6 +4,8 @@ import { StatsBar } from "./components/StatsBar";
 import { StatusBadge } from "./components/StatusBadge";
 import { TaskForm } from "./components/TaskForm";
 import { RunHistoryModal } from "./components/RunHistoryModal";
+import { LiveConsole } from "./components/LiveConsole";
+import { useLiveRuns } from "./hooks/useLiveRuns";
 import type { Stats, Task, TaskInput } from "./types";
 
 export default function App() {
@@ -34,6 +36,8 @@ export default function App() {
     const id = setInterval(refresh, 5000);
     return () => clearInterval(id);
   }, [refresh]);
+
+  const { liveRun, connected, dismiss } = useLiveRuns({ onFinished: refresh });
 
   async function handleSubmit(data: TaskInput) {
     if (editing) await api.updateTask(editing.id, data);
@@ -71,7 +75,24 @@ export default function App() {
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <span className="text-accent2">◈</span> TaskPilot
           </h1>
-          <p className="text-sm text-slate-400">Otomasyon görevlerini zamanla, çalıştır ve izle</p>
+          <p className="flex items-center gap-2 text-sm text-slate-400">
+            Otomasyon görevlerini zamanla, çalıştır ve izle
+            <span
+              title={connected ? "Canlı bağlantı açık" : "Bağlantı yok"}
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] ${
+                connected
+                  ? "bg-emerald-500/15 text-emerald-400"
+                  : "bg-slate-500/15 text-slate-400"
+              }`}
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  connected ? "animate-pulse bg-emerald-400" : "bg-slate-500"
+                }`}
+              />
+              {connected ? "canlı" : "bağlı değil"}
+            </span>
+          </p>
         </div>
         <button
           onClick={() => {
@@ -217,6 +238,7 @@ export default function App() {
       {historyTask && (
         <RunHistoryModal task={historyTask} onClose={() => setHistoryTask(null)} />
       )}
+      {liveRun && <LiveConsole run={liveRun} onClose={dismiss} />}
     </div>
   );
 }

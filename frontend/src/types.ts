@@ -45,3 +45,30 @@ export interface Stats {
   total_runs: number;
   failed_runs: number;
 }
+
+export type WsEvent =
+  | {
+      event: "run_started";
+      task_id: number;
+      run_id: number;
+      task_name: string;
+      trigger: "manual" | "scheduled";
+      started_at: string;
+    }
+  | { event: "log"; task_id: number; run_id: number; line: string }
+  | {
+      event: "run_finished";
+      task_id: number;
+      run_id: number;
+      status: RunStatus;
+      finished_at: string;
+    };
+
+export interface LiveRun {
+  runId: number;
+  taskId: number;
+  taskName: string;
+  trigger: "manual" | "scheduled";
+  status: RunStatus;
+  lines: string[];
+}

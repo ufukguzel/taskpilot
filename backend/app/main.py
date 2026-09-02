@@ -1,6 +1,7 @@
 """TaskPilot FastAPI application entry point."""
 from __future__ import annotations
 
+import asyncio
 import os
 from contextlib import asynccontextmanager
 
@@ -9,13 +10,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import scheduler
 from app.database import init_db
-from app.routers import stats, tasks
+from app.events import manager
+from app.routers import stats, tasks, ws
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    """Initialise the database and start the scheduler on startup."""
+    """Initialise the database, bind the event loop and start the scheduler."""
     init_db()
+    manager.bind_loop(asyncio.get_running_loop())
     scheduler.start()
     yield
     scheduler.shutdown()
@@ -40,6 +43,7 @@ app.add_middleware(
 
 app.include_router(tasks.router)
 app.include_router(stats.router)
+app.include_router(ws.router)
 
 
 @app.get("/api/health", tags=["health"])

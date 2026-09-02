@@ -17,6 +17,7 @@ TaskPilot; komut veya HTTP tabanlı görevleri cron ifadeleriyle zamanlayan, man
 - 🗂️ **Görev yönetimi** — komut (`shell`) veya HTTP isteği tipinde görev oluştur/düzenle/sil
 - ⏰ **Cron zamanlama** — `*/5 * * * *` gibi ifadelerle otomatik çalıştırma (APScheduler)
 - ▶️ **Manuel tetikleme** — herhangi bir görevi anında "Çalıştır"
+- 🔴 **Canlı log akışı** — WebSocket ile çalışan görevin çıktısı satır satır anlık akar
 - 📜 **Çalışma geçmişi & log** — her çalışmanın durumu, tetikleyicisi ve tam çıktısı
 - 📊 **Canlı istatistikler** — toplam/aktif/zamanlanmış görev, çalışma & hata sayıları (5 sn'de bir otomatik yenileme)
 - 🔌 **Tek origin dev** — Vite proxy ile `/api` istekleri backend'e yönlenir; CORS derdi yok
@@ -93,8 +94,8 @@ cd backend && pytest -q
 
 ## 🛣️ Yol haritası
 
+- [x] WebSocket ile canlı log akışı
 - [ ] Kullanıcı kimlik doğrulama (JWT)
-- [ ] WebSocket ile canlı log akışı
 - [ ] Görev başarısızlığında e-posta/webhook bildirimi
 - [ ] Docker Compose ile tek komutla ayağa kaldırma
 

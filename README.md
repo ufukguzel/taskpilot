@@ -4,7 +4,7 @@
 
 TaskPilot; komut veya HTTP tabanlı görevleri cron ifadeleriyle zamanlayan, manuel tetiklemeye izin veren ve her çalışmanın çıktısını/durumunu kaydeden self-hosted bir otomasyon panosudur. **FastAPI** backend + **React (TypeScript)** frontend ile geliştirilmiştir.
 
-![status](https://img.shields.io/badge/tests-passing-brightgreen)
+[![CI](https://github.com/ufukguzel/taskpilot/actions/workflows/ci.yml/badge.svg)](https://github.com/ufukguzel/taskpilot/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 ![fastapi](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
 ![react](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
@@ -29,23 +29,47 @@ TaskPilot; komut veya HTTP tabanlı görevleri cron ifadeleriyle zamanlayan, man
 
 ## 🏗️ Mimari
 
+```mermaid
+flowchart LR
+    U["👤 Kullanıcı<br/>(Tarayıcı)"] -->|HTTP + WebSocket| F["React + Vite<br/>Dashboard"]
+    F -->|"REST /api (JWT)"| B["FastAPI"]
+    F <-->|"WebSocket /api/ws<br/>canlı log"| B
+    B --> DB[("SQLite<br/>SQLAlchemy")]
+    B --> SCH["APScheduler<br/>(cron)"]
+    SCH -->|zamanlanmış| EX["Executor"]
+    B -->|manuel tetikleme| EX
+    EX -->|"komut / HTTP"| T["🎯 Hedef<br/>(shell / API)"]
+    EX -->|başarısızlıkta| N["🔔 Bildirim<br/>webhook / e-posta"]
+    EX --> DB
+```
+
 ```
 taskpilot/
 ├── backend/                 # FastAPI + SQLAlchemy + APScheduler
 │   ├── app/
-│   │   ├── main.py          # Uygulama + lifespan (DB init, scheduler start)
-│   │   ├── models.py        # Task, TaskRun (ORM)
+│   │   ├── main.py          # Uygulama + lifespan (DB init, seed, scheduler)
+│   │   ├── models.py        # User, Task, TaskRun (ORM)
 │   │   ├── schemas.py       # Pydantic doğrulama
-│   │   ├── crud.py          # Veri erişim katmanı
-│   │   ├── executor.py      # Komut/HTTP çalıştırma motoru
+│   │   ├── crud.py          # Veri erişimi + metrik hesaplama
+│   │   ├── auth.py          # JWT + parola hash + bağımlılıklar
+│   │   ├── executor.py      # Komut/HTTP çalıştırma (canlı yayınlı)
 │   │   ├── scheduler.py     # Cron job yönetimi
-│   │   └── routers/         # /api/tasks, /api/stats
+│   │   ├── events.py        # WebSocket ConnectionManager
+│   │   ├── notifications.py # Webhook + SMTP bildirim
+│   │   ├── seed.py          # Varsayılan admin
+│   │   └── routers/         # auth, tasks, stats(+metrics), ws
+│   ├── Dockerfile
 │   └── tests/               # pytest
-└── frontend/                # React + Vite + TypeScript + Tailwind
-    └── src/
-        ├── api.ts           # Tip güvenli API istemcisi
-        ├── App.tsx          # Pano
-        └── components/      # StatsBar, TaskForm, RunHistoryModal…
+├── frontend/                # React + Vite + TypeScript + Tailwind
+│   ├── src/
+│   │   ├── api.ts           # Tip güvenli API istemcisi + token yönetimi
+│   │   ├── App.tsx          # Pano (Görevler / Metrikler sekmeleri)
+│   │   ├── hooks/           # useLiveRuns (WebSocket)
+│   │   └── components/      # Login, TaskForm, LiveConsole, MetricsView, BarChart…
+│   ├── Dockerfile
+│   └── nginx.conf
+├── .github/workflows/ci.yml # CI: pytest + build
+└── docker-compose.yml
 ```
 
 ## 🚀 Kurulum

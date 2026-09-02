@@ -22,6 +22,7 @@ export interface Task {
   http_method: HttpMethod;
   schedule: string | null;
   enabled: boolean;
+  notify_on_failure: boolean;
   created_at: string;
   updated_at: string;
   last_run: TaskRun | null;
@@ -36,6 +37,7 @@ export interface TaskInput {
   http_method?: HttpMethod;
   schedule?: string;
   enabled?: boolean;
+  notify_on_failure?: boolean;
 }
 
 export interface Stats {

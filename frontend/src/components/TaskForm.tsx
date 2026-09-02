@@ -23,6 +23,7 @@ export function TaskForm({ initial, onCancel, onSubmit }: Props) {
   const [url, setUrl] = useState(initial?.url ?? "");
   const [httpMethod, setHttpMethod] = useState(initial?.http_method ?? "GET");
   const [schedule, setSchedule] = useState(initial?.schedule ?? "");
+  const [notifyOnFailure, setNotifyOnFailure] = useState(initial?.notify_on_failure ?? false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -41,6 +42,7 @@ export function TaskForm({ initial, onCancel, onSubmit }: Props) {
         url: taskType === "http" ? url : undefined,
         http_method: httpMethod as TaskInput["http_method"],
         schedule: schedule || undefined,
+        notify_on_failure: notifyOnFailure,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Kaydedilemedi");
@@ -156,6 +158,19 @@ export function TaskForm({ initial, onCancel, onSubmit }: Props) {
               />
             )}
           </div>
+
+          <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-edge bg-base px-3 py-2.5">
+            <input
+              type="checkbox"
+              checked={notifyOnFailure}
+              onChange={(e) => setNotifyOnFailure(e.target.checked)}
+              className="h-4 w-4 accent-accent"
+            />
+            <span className="text-sm text-slate-300">
+              🔔 Başarısız olursa bildirim gönder
+              <span className="ml-1 text-xs text-slate-500">(webhook / e-posta)</span>
+            </span>
+          </label>
         </div>
 
         {error && (

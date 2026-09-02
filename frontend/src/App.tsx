@@ -187,7 +187,14 @@ export default function App() {
                         }`}
                       />
                       <div>
-                        <div className="font-medium text-slate-100">{task.name}</div>
+                        <div className="flex items-center gap-1.5 font-medium text-slate-100">
+                          {task.name}
+                          {task.notify_on_failure && (
+                            <span title="Başarısızlıkta bildirim açık" className="text-xs">
+                              🔔
+                            </span>
+                          )}
+                        </div>
                         {task.description && (
                           <div className="text-xs text-slate-500">{task.description}</div>
                         )}

@@ -33,8 +33,26 @@ def get_db() -> Generator[Session, None, None]:
 
 
 def init_db() -> None:
-    """Create all tables. Called on application startup."""
+    """Create all tables and apply lightweight migrations. Called on startup."""
     # Import models so they register with the metadata before create_all.
     from app import models  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
+    _apply_migrations()
+
+
+def _apply_migrations() -> None:
+    """Idempotent column additions for SQLite (create_all won't alter tables)."""
+    from sqlalchemy import inspect, text
+
+    if not DATABASE_URL.startswith("sqlite"):
+        return
+    inspector = inspect(engine)
+    if "tasks" not in inspector.get_table_names():
+        return
+    columns = {c["name"] for c in inspector.get_columns("tasks")}
+    if "notify_on_failure" not in columns:
+        with engine.begin() as conn:
+            conn.execute(
+                text("ALTER TABLE tasks ADD COLUMN notify_on_failure BOOLEAN NOT NULL DEFAULT 0")
+            )

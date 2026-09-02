@@ -19,6 +19,7 @@ class TaskBase(BaseModel):
     http_method: HttpMethod = "GET"
     schedule: str | None = None
     enabled: bool = True
+    notify_on_failure: bool = False
 
     @field_validator("name")
     @classmethod
@@ -47,6 +48,7 @@ class TaskUpdate(BaseModel):
     http_method: HttpMethod | None = None
     schedule: str | None = None
     enabled: bool | None = None
+    notify_on_failure: bool | None = None
 
 
 class TaskRunOut(BaseModel):

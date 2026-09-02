@@ -47,6 +47,9 @@ class Task(Base):
     schedule: Mapped[str | None] = mapped_column(String(120), nullable=True)
     enabled: Mapped[bool] = mapped_column(default=True, nullable=False)
 
+    # send a webhook/email notification when a run of this task fails
+    notify_on_failure: Mapped[bool] = mapped_column(default=False, nullable=False)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
 

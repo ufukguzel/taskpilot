@@ -107,3 +107,22 @@ def test_stats(client):
     r = client.get("/api/stats")
     assert r.status_code == 200
     assert "total_tasks" in r.json()
+
+
+def test_notify_on_failure_flag_and_safe_noop(client):
+    # A failing task with notify_on_failure set should still complete; with no
+    # channels configured, notifying is a safe no-op (no crash).
+    created = client.post(
+        "/api/tasks",
+        json={
+            "name": "failing task",
+            "task_type": "command",
+            "command": "exit 1",
+            "notify_on_failure": True,
+        },
+    ).json()
+    assert created["notify_on_failure"] is True
+
+    run = client.post(f"/api/tasks/{created['id']}/run")
+    assert run.status_code == 200
+    assert run.json()["status"] == "failed"

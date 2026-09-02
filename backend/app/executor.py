@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 import httpx
 from sqlalchemy.orm import Session
 
-from app import models
+from app import models, notifications
 from app.events import manager
 
 COMMAND_TIMEOUT_SECONDS = 60
@@ -124,4 +124,8 @@ def execute_task(db: Session, task: models.Task, trigger: str = "manual") -> mod
             "finished_at": run.finished_at.isoformat(),
         }
     )
+
+    if not ok and task.notify_on_failure:
+        notifications.notify_failure(task, run)
+
     return run

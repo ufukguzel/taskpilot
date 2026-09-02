@@ -13,6 +13,12 @@ TaskPilot; komut veya HTTP tabanlı görevleri cron ifadeleriyle zamanlayan, man
 
 ---
 
+## 📸 Ekran Görüntüleri
+
+| Pano (Görevler) | Metrikler & Grafikler |
+|---|---|
+| ![Dashboard](docs/dashboard.png) | ![Metrics](docs/metrics.png) |
+
 ## ✨ Özellikler
 
 - 🔐 **JWT kimlik doğrulama** — login ekranı, korumalı API & WebSocket, oturum yönetimi

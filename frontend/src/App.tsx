@@ -6,6 +6,7 @@ import { StatusBadge } from "./components/StatusBadge";
 import { TaskForm } from "./components/TaskForm";
 import { RunHistoryModal } from "./components/RunHistoryModal";
 import { LiveConsole } from "./components/LiveConsole";
+import { MetricsView } from "./components/MetricsView";
 import { useLiveRuns } from "./hooks/useLiveRuns";
 import type { Stats, Task, TaskInput } from "./types";
 
@@ -19,6 +20,7 @@ export default function App() {
   const [editing, setEditing] = useState<Task | null>(null);
   const [historyTask, setHistoryTask] = useState<Task | null>(null);
   const [runningId, setRunningId] = useState<number | null>(null);
+  const [view, setView] = useState<"tasks" | "metrics">("tasks");
 
   const refresh = useCallback(async () => {
     try {
@@ -140,8 +142,20 @@ export default function App() {
         </div>
       </header>
 
-      <div className="mb-6">
-        <StatsBar stats={stats} />
+      <div className="mb-5 flex gap-1 border-b border-edge">
+        {(["tasks", "metrics"] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => setView(v)}
+            className={`-mb-px border-b-2 px-4 py-2 text-sm ${
+              view === v
+                ? "border-accent text-white"
+                : "border-transparent text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            {v === "tasks" ? "Görevler" : "Metrikler"}
+          </button>
+        ))}
       </div>
 
       {error && (
@@ -149,6 +163,14 @@ export default function App() {
           {error} — backend çalışıyor mu? (uvicorn :8000)
         </div>
       )}
+
+      {view === "metrics" ? (
+        <MetricsView />
+      ) : (
+      <>
+      <div className="mb-6">
+        <StatsBar stats={stats} />
+      </div>
 
       <div className="overflow-hidden rounded-2xl border border-edge bg-panel/60">
         {loading ? (
@@ -262,6 +284,8 @@ export default function App() {
           </table>
         )}
       </div>
+      </>
+      )}
 
       <footer className="mt-6 text-center text-xs text-slate-600">
         TaskPilot · FastAPI + React · otomatik yenileme 5sn

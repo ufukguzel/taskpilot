@@ -109,6 +109,15 @@ def test_stats(client):
     assert "total_tasks" in r.json()
 
 
+def test_metrics(client):
+    r = client.get("/api/stats/metrics")
+    assert r.status_code == 200
+    body = r.json()
+    for key in ("success_rate", "avg_duration", "daily", "recent"):
+        assert key in body
+    assert isinstance(body["daily"], list)
+
+
 def test_notify_on_failure_flag_and_safe_noop(client):
     # A failing task with notify_on_failure set should still complete; with no
     # channels configured, notifying is a safe no-op (no crash).

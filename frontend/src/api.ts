@@ -1,4 +1,4 @@
-import type { Stats, Task, TaskInput, TaskRun } from "./types";
+import type { Metrics, Stats, Task, TaskInput, TaskRun } from "./types";
 
 const BASE = "/api";
 const TOKEN_KEY = "taskpilot_token";
@@ -84,4 +84,5 @@ export const api = {
   runTask: (id: number) => request<TaskRun>(`/tasks/${id}/run`, { method: "POST" }),
   taskRuns: (id: number) => request<TaskRun[]>(`/tasks/${id}/runs`),
   stats: () => request<Stats>("/stats"),
+  metrics: () => request<Metrics>("/stats/metrics"),
 };

@@ -14,3 +14,8 @@ router = APIRouter(prefix="/api/stats", tags=["stats"], dependencies=[Depends(ge
 @router.get("")
 def get_stats(db: Session = Depends(get_db)) -> dict[str, int]:
     return crud.stats(db)
+
+
+@router.get("/metrics")
+def get_metrics(days: int = 14, db: Session = Depends(get_db)) -> dict:
+    return crud.metrics(db, days=days)

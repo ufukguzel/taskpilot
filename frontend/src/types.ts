@@ -66,6 +66,33 @@ export type WsEvent =
       finished_at: string;
     };
 
+export interface DailyPoint {
+  date: string;
+  success: number;
+  failed: number;
+}
+
+export interface RecentRun {
+  id: number;
+  task_id: number;
+  task_name: string;
+  status: RunStatus;
+  trigger: "manual" | "scheduled";
+  started_at: string;
+  duration: number | null;
+}
+
+export interface Metrics {
+  success_rate: number;
+  avg_duration: number;
+  max_duration: number;
+  total_runs: number;
+  success_runs: number;
+  failed_runs: number;
+  daily: DailyPoint[];
+  recent: RecentRun[];
+}
+
 export interface LiveRun {
   runId: number;
   taskId: number;

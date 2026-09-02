@@ -23,6 +23,7 @@ TaskPilot; komut veya HTTP tabanlı görevleri cron ifadeleriyle zamanlayan, man
 - 🔔 **Başarısızlık bildirimi** — görev başarısız olunca webhook (Slack/Discord/özel) ve/veya SMTP e-posta
 - 📜 **Çalışma geçmişi & log** — her çalışmanın durumu, tetikleyicisi ve tam çıktısı
 - 📊 **Canlı istatistikler** — toplam/aktif/zamanlanmış görev, çalışma & hata sayıları (5 sn'de bir otomatik yenileme)
+- 📈 **Metrikler & grafikler** — başarı oranı, ortalama/en uzun süre, son 14 günün çalışma dağılımı (SVG grafik) ve son çalışmalar
 - 🔌 **Tek origin dev** — Vite proxy ile `/api` istekleri backend'e yönlenir; CORS derdi yok
 - ✅ **Testli** — FastAPI `TestClient` ile API testleri
 
@@ -113,8 +114,9 @@ cd backend && pytest -q
 - [x] Kullanıcı kimlik doğrulama (JWT)
 - [x] Docker Compose ile tek komutla ayağa kaldırma
 - [x] Görev başarısızlığında e-posta/webhook bildirimi
-- [ ] Görev başına ayrıntılı çalışma metrikleri
+- [x] Çalışma metrikleri & grafikler
 - [ ] Çoklu kullanıcı & rol yönetimi
+- [ ] CI/CD (GitHub Actions)
 
 ## 📄 Lisans
 

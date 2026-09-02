@@ -21,8 +21,8 @@ class ConnectionManager:
         """Capture the running event loop (called on app startup)."""
         self._loop = loop
 
-    async def connect(self, ws: WebSocket) -> None:
-        await ws.accept()
+    def register(self, ws: WebSocket) -> None:
+        """Add an already-accepted WebSocket to the broadcast set."""
         self._clients.add(ws)
 
     def disconnect(self, ws: WebSocket) -> None:

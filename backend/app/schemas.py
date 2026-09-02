@@ -68,3 +68,20 @@ class TaskOut(TaskBase):
     created_at: datetime
     updated_at: datetime
     last_run: TaskRunOut | None = None
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    username: str

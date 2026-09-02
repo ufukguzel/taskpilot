@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import { auth } from "../api";
 import type { LiveRun, WsEvent } from "../types";
 
 interface Options {
+  enabled?: boolean;
   onFinished?: () => void;
 }
 
@@ -9,20 +11,23 @@ interface Options {
  * Maintains a persistent WebSocket to /api/ws and exposes the current live run
  * plus a connection flag. Auto-reconnects with a short backoff.
  */
-export function useLiveRuns({ onFinished }: Options = {}) {
+export function useLiveRuns({ enabled = true, onFinished }: Options = {}) {
   const [liveRun, setLiveRun] = useState<LiveRun | null>(null);
   const [connected, setConnected] = useState(false);
   const finishedRef = useRef(onFinished);
   finishedRef.current = onFinished;
 
   useEffect(() => {
+    if (!enabled) return;
     let ws: WebSocket | null = null;
     let retry: ReturnType<typeof setTimeout>;
     let closed = false;
 
     const connect = () => {
+      const token = auth.get();
+      if (!token) return;
       const proto = location.protocol === "https:" ? "wss" : "ws";
-      ws = new WebSocket(`${proto}://${location.host}/api/ws`);
+      ws = new WebSocket(`${proto}://${location.host}/api/ws?token=${encodeURIComponent(token)}`);
 
       ws.onopen = () => setConnected(true);
       ws.onclose = () => {
@@ -62,7 +67,7 @@ export function useLiveRuns({ onFinished }: Options = {}) {
       clearTimeout(retry);
       ws?.close();
     };
-  }, []);
+  }, [enabled]);
 
   return { liveRun, connected, dismiss: () => setLiveRun(null) };
 }

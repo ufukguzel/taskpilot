@@ -14,6 +14,7 @@ TaskPilot; komut veya HTTP tabanlı görevleri cron ifadeleriyle zamanlayan, man
 
 ## ✨ Özellikler
 
+- 🔐 **JWT kimlik doğrulama** — login ekranı, korumalı API & WebSocket, oturum yönetimi
 - 🗂️ **Görev yönetimi** — komut (`shell`) veya HTTP isteği tipinde görev oluştur/düzenle/sil
 - ⏰ **Cron zamanlama** — `*/5 * * * *` gibi ifadelerle otomatik çalıştırma (APScheduler)
 - ▶️ **Manuel tetikleme** — herhangi bir görevi anında "Çalıştır"
@@ -62,6 +63,8 @@ uvicorn app.main:app --reload --port 8000
 
 API `http://localhost:8000` · Swagger dokümanı `http://localhost:8000/docs`
 
+İlk açılışta varsayılan bir admin oluşturulur: **`admin` / `admin123`** (üretimde `.env` ile `ADMIN_PASSWORD` ve `SECRET_KEY` değiştir). Ayarlar için `backend/.env.example` dosyasına bak.
+
 ### 2) Frontend (React)
 
 ```bash
@@ -95,7 +98,7 @@ cd backend && pytest -q
 ## 🛣️ Yol haritası
 
 - [x] WebSocket ile canlı log akışı
-- [ ] Kullanıcı kimlik doğrulama (JWT)
+- [x] Kullanıcı kimlik doğrulama (JWT)
 - [ ] Görev başarısızlığında e-posta/webhook bildirimi
 - [ ] Docker Compose ile tek komutla ayağa kaldırma
 

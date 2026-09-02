@@ -11,13 +11,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import scheduler
 from app.database import init_db
 from app.events import manager
-from app.routers import stats, tasks, ws
+from app.routers import auth, stats, tasks, ws
+from app.seed import seed_admin
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    """Initialise the database, bind the event loop and start the scheduler."""
+    """Initialise the database, seed an admin, bind the loop and start the scheduler."""
     init_db()
+    seed_admin()
     manager.bind_loop(asyncio.get_running_loop())
     scheduler.start()
     yield
@@ -41,6 +43,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(tasks.router)
 app.include_router(stats.router)
 app.include_router(ws.router)

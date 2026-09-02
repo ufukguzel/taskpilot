@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { api } from "./api";
+import { api, auth, AuthError } from "./api";
+import { Login } from "./components/Login";
 import { StatsBar } from "./components/StatsBar";
 import { StatusBadge } from "./components/StatusBadge";
 import { TaskForm } from "./components/TaskForm";
@@ -9,6 +10,7 @@ import { useLiveRuns } from "./hooks/useLiveRuns";
 import type { Stats, Task, TaskInput } from "./types";
 
 export default function App() {
+  const [authed, setAuthed] = useState<boolean>(() => !!auth.get());
   const [tasks, setTasks] = useState<Task[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,19 +27,43 @@ export default function App() {
       setStats(s);
       setError(null);
     } catch (err) {
+      if (err instanceof AuthError) {
+        setAuthed(false);
+        return;
+      }
       setError(err instanceof Error ? err.message : "Sunucuya ulaşılamadı");
     } finally {
       setLoading(false);
     }
   }, []);
 
+  function logout() {
+    api.logout();
+    setAuthed(false);
+  }
+
   useEffect(() => {
+    if (!authed) return;
     refresh();
     const id = setInterval(refresh, 5000);
     return () => clearInterval(id);
-  }, [refresh]);
+  }, [refresh, authed]);
 
-  const { liveRun, connected, dismiss } = useLiveRuns({ onFinished: refresh });
+  const { liveRun, connected, dismiss } = useLiveRuns({
+    enabled: authed,
+    onFinished: refresh,
+  });
+
+  if (!authed) {
+    return (
+      <Login
+        onSuccess={() => {
+          setLoading(true);
+          setAuthed(true);
+        }}
+      />
+    );
+  }
 
   async function handleSubmit(data: TaskInput) {
     if (editing) await api.updateTask(editing.id, data);
@@ -94,15 +120,24 @@ export default function App() {
             </span>
           </p>
         </div>
-        <button
-          onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
-          className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
-        >
-          + Yeni Görev
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+          >
+            + Yeni Görev
+          </button>
+          <button
+            onClick={logout}
+            title="Çıkış yap"
+            className="rounded-lg border border-edge px-3 py-2 text-sm text-slate-300 hover:bg-panel2"
+          >
+            Çıkış
+          </button>
+        </div>
       </header>
 
       <div className="mb-6">

@@ -5,10 +5,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.orm import Session
 
 from app import crud, models, scheduler, schemas
+from app.auth import get_current_user
 from app.database import get_db
 from app.executor import execute_task
 
-router = APIRouter(prefix="/api/tasks", tags=["tasks"])
+# All task endpoints require an authenticated user.
+router = APIRouter(prefix="/api/tasks", tags=["tasks"], dependencies=[Depends(get_current_user)])
 
 
 def _to_out(db: Session, task: models.Task) -> schemas.TaskOut:

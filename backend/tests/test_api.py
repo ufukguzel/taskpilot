@@ -18,7 +18,12 @@ from app.main import app  # noqa: E402
 
 @pytest.fixture(scope="module")
 def client():
+    """Authenticated client using the seeded default admin (admin/admin123)."""
     with TestClient(app) as c:
+        token = c.post(
+            "/api/auth/login", json={"username": "admin", "password": "admin123"}
+        ).json()["access_token"]
+        c.headers.update({"Authorization": f"Bearer {token}"})
         yield c
 
 
@@ -26,6 +31,24 @@ def test_health(client):
     r = client.get("/api/health")
     assert r.status_code == 200
     assert r.json()["status"] == "ok"
+
+
+def test_requires_auth():
+    with TestClient(app) as anon:
+        assert anon.get("/api/tasks").status_code == 401
+        assert anon.get("/api/stats").status_code == 401
+
+
+def test_login_bad_credentials():
+    with TestClient(app) as c:
+        r = c.post("/api/auth/login", json={"username": "admin", "password": "wrong"})
+        assert r.status_code == 401
+
+
+def test_me(client):
+    r = client.get("/api/auth/me")
+    assert r.status_code == 200
+    assert r.json()["username"] == "admin"
 
 
 def test_create_and_run_command_task(client):

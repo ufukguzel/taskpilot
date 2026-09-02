@@ -1,6 +1,9 @@
 import type { Metrics, Stats, Task, TaskInput, TaskRun } from "./types";
 
-const BASE = "/api";
+// In production (Vercel) point the frontend at the backend origin via
+// VITE_API_BASE_URL; in dev it's empty and Vite proxies "/api" to :8000.
+const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+const BASE = `${API_ORIGIN}/api`;
 const TOKEN_KEY = "taskpilot_token";
 
 export const auth = {

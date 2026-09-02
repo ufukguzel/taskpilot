@@ -9,6 +9,7 @@ it to untrusted networks without adding authentication and command allow-listing
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import threading
 from collections.abc import Callable
@@ -103,8 +104,14 @@ def execute_task(db: Session, task: models.Task, trigger: str = "manual") -> mod
             collected.append(line)
         manager.publish({"event": "log", "task_id": task.id, "run_id": run.id, "line": line})
 
+    demo_mode = os.getenv("DEMO_MODE", "false").lower() == "true"
     if task.task_type == "http":
         ok = _run_http(task.url or "", task.http_method or "GET", emit)
+    elif demo_mode:
+        # Public demo: never run arbitrary shell commands.
+        emit("⚠️ Demo modu: komut çalıştırma güvenlik nedeniyle devre dışı.")
+        emit("HTTP tipi görevler tam çalışır; komutu yerel kurulumda deneyebilirsin.")
+        ok = True
     else:
         ok = _run_command(task.command or "", emit)
 

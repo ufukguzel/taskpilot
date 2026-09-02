@@ -124,6 +124,24 @@ Pano `http://localhost:8080` adresinde açılır (nginx, `/api` ve WebSocket ist
 cd backend && pytest -q
 ```
 
+## 🌐 Canlı Demo Kurulumu (Frontend Vercel · Backend Render)
+
+WebSocket + scheduler kalıcı sunucu gerektirdiği için backend Render'a, frontend Vercel'e gider.
+
+**1) Backend → Render**
+- Render → New → **Blueprint** → bu repo (`render.yaml` otomatik okunur).
+- Environment: `ADMIN_PASSWORD` (güçlü bir değer) ve `ALLOWED_ORIGINS` (Vercel URL'in) gir. `DEMO_MODE=true` gelir (komut çalıştırma kapalı — güvenli).
+- Deploy edilen URL'yi not al: `https://taskpilot-api.onrender.com`
+
+**2) Frontend → Vercel**
+- Vercel → New Project → bu repo → **Root Directory: `frontend`** (Vite otomatik algılanır).
+- Environment Variable: `VITE_API_BASE_URL = https://taskpilot-api.onrender.com`
+- Deploy → `https://<proje>.vercel.app`
+
+**3) Bağla:** Render'daki `ALLOWED_ORIGINS`'i Vercel URL'inle güncelle.
+
+> Notlar: Render free servisi bir süre sonra uyur (ilk istek ~50 sn). SQLite free katmanda kalıcı değildir (redeploy'da sıfırlanır) — demo için yeterli. `DEMO_MODE` açıkken komut görevleri çalışmaz; **HTTP tipi görevler** tam çalışır (demoyu onlarla göster).
+
 ## 🧩 Cron ifadeleri (örnek)
 
 | İfade | Anlamı |

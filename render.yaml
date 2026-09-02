@@ -1,0 +1,23 @@
+# Render blueprint for the TaskPilot backend (persistent server: WS + scheduler).
+# Deploy: Render dashboard -> New -> Blueprint -> pick this repo.
+services:
+  - type: web
+    name: taskpilot-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: SECRET_KEY
+        generateValue: true          # Render üretir
+      - key: DEMO_MODE
+        value: "true"                # herkese açık demo: komut çalıştırma kapalı
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false                  # dashboard'dan güçlü bir değer gir
+      - key: ALLOWED_ORIGINS
+        sync: false                  # Vercel URL'ni gir: https://<proje>.vercel.app

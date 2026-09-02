@@ -26,8 +26,17 @@ export function useLiveRuns({ enabled = true, onFinished }: Options = {}) {
     const connect = () => {
       const token = auth.get();
       if (!token) return;
-      const proto = location.protocol === "https:" ? "wss" : "ws";
-      ws = new WebSocket(`${proto}://${location.host}/api/ws?token=${encodeURIComponent(token)}`);
+      // Derive the WS host from VITE_API_BASE_URL in production, else current host.
+      const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+      let wsHost = location.host;
+      let secure = location.protocol === "https:";
+      if (apiBase) {
+        const u = new URL(apiBase);
+        wsHost = u.host;
+        secure = u.protocol === "https:";
+      }
+      const proto = secure ? "wss" : "ws";
+      ws = new WebSocket(`${proto}://${wsHost}/api/ws?token=${encodeURIComponent(token)}`);
 
       ws.onopen = () => setConnected(true);
       ws.onclose = () => {

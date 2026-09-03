@@ -76,6 +76,8 @@ export const api = {
     return data;
   },
   me: () => request<{ id: number; username: string }>("/auth/me"),
+  health: () =>
+    request<{ status: string; demo_mode: boolean; demo_user: string | null }>("/health"),
   logout: () => auth.clear(),
 
   listTasks: () => request<Task[]>("/tasks"),

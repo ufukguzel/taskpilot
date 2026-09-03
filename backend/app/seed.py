@@ -1,8 +1,10 @@
-"""Seed a default admin user on first run (configurable via env)."""
+"""Seed the admin user (and, in demo mode, a public demo user) on startup."""
 from __future__ import annotations
 
 import logging
 import os
+
+from sqlalchemy.orm import Session
 
 from app import auth, models
 from app.database import SessionLocal
@@ -10,19 +12,28 @@ from app.database import SessionLocal
 logger = logging.getLogger("taskpilot.seed")
 
 
-def seed_admin() -> None:
-    username = os.getenv("ADMIN_USERNAME", "admin")
-    password = os.getenv("ADMIN_PASSWORD", "admin123")
+def _ensure_user(db: Session, username: str, password: str) -> None:
+    if db.query(models.User).filter(models.User.username == username).first():
+        return
+    db.add(models.User(username=username, hashed_password=auth.hash_password(password)))
+    db.commit()
+    logger.warning("Seeded user %r (change its password in production!)", username)
 
+
+def seed_admin() -> None:
     db = SessionLocal()
     try:
-        if db.query(models.User).count() > 0:
-            return
-        user = models.User(username=username, hashed_password=auth.hash_password(password))
-        db.add(user)
-        db.commit()
-        logger.warning(
-            "Seeded default admin user %r. Change ADMIN_PASSWORD in production!", username
+        _ensure_user(
+            db,
+            os.getenv("ADMIN_USERNAME", "admin"),
+            os.getenv("ADMIN_PASSWORD", "admin123"),
         )
+        # In demo mode, publish a safe shared account so visitors can try the app.
+        if os.getenv("DEMO_MODE", "false").lower() == "true":
+            _ensure_user(
+                db,
+                os.getenv("DEMO_USERNAME", "demo"),
+                os.getenv("DEMO_PASSWORD", "demo1234"),
+            )
     finally:
         db.close()

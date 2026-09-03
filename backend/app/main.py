@@ -50,5 +50,10 @@ app.include_router(ws.router)
 
 
 @app.get("/api/health", tags=["health"])
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+def health() -> dict[str, object]:
+    demo = os.getenv("DEMO_MODE", "false").lower() == "true"
+    return {
+        "status": "ok",
+        "demo_mode": demo,
+        "demo_user": os.getenv("DEMO_USERNAME", "demo") if demo else None,
+    }

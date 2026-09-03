@@ -4,6 +4,8 @@
 
 TaskPilot; komut veya HTTP tabanlı görevleri cron ifadeleriyle zamanlayan, manuel tetiklemeye izin veren ve her çalışmanın çıktısını/durumunu kaydeden self-hosted bir otomasyon panosudur. **FastAPI** backend + **React (TypeScript)** frontend ile geliştirilmiştir.
 
+**🔗 [Canlı Demo](https://taskpilot-eta-six.vercel.app)** — `admin` ile giriş yap (demo modunda komut çalıştırma kapalı; HTTP görevleriyle dene).
+
 [![CI](https://github.com/ufukguzel/taskpilot/actions/workflows/ci.yml/badge.svg)](https://github.com/ufukguzel/taskpilot/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 ![fastapi](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)

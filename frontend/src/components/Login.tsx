@@ -68,10 +68,6 @@ export function Login({ onSuccess }: { onSuccess: () => void }) {
         >
           {loading ? "Giriş yapılıyor…" : "Giriş yap"}
         </button>
-
-        <p className="mt-4 text-center text-xs text-slate-600">
-          Varsayılan: <span className="font-mono text-slate-400">admin / admin123</span>
-        </p>
       </form>
     </div>
   );

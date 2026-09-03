@@ -8,7 +8,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 
-# SQLite database lives on a mounted volume at /data by default.
+# SQLite database lives at /data (mounted volume in compose, or ephemeral on PaaS).
+RUN mkdir -p /data
 ENV DATABASE_URL=sqlite:////data/taskpilot.db
 EXPOSE 8000
 

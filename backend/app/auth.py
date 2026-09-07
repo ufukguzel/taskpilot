@@ -11,9 +11,10 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app import models
+from app.config import get_secret_key
 from app.database import get_db
 
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-me-in-production")
+SECRET_KEY = get_secret_key()
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "720"))
 

@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import scheduler
+from app.config import is_demo_mode
 from app.database import init_db
 from app.events import manager
 from app.routers import auth, stats, tasks, ws
@@ -51,7 +52,7 @@ app.include_router(ws.router)
 
 @app.get("/api/health", tags=["health"])
 def health() -> dict[str, object]:
-    demo = os.getenv("DEMO_MODE", "false").lower() == "true"
+    demo = is_demo_mode()
     return {
         "status": "ok",
         "demo_mode": demo,

@@ -7,6 +7,7 @@ import os
 from sqlalchemy.orm import Session
 
 from app import auth, models
+from app.config import is_demo_mode
 from app.database import SessionLocal
 
 logger = logging.getLogger("taskpilot.seed")
@@ -29,7 +30,7 @@ def seed_admin() -> None:
             os.getenv("ADMIN_PASSWORD", "admin123"),
         )
         # In demo mode, publish a safe shared account so visitors can try the app.
-        if os.getenv("DEMO_MODE", "false").lower() == "true":
+        if is_demo_mode():
             _ensure_user(
                 db,
                 os.getenv("DEMO_USERNAME", "demo"),

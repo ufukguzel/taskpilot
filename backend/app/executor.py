@@ -9,10 +9,13 @@ it to untrusted networks without adding authentication and command allow-listing
 """
 from __future__ import annotations
 
+import ipaddress
+import socket
 import subprocess
 import threading
 from collections.abc import Callable
 from datetime import datetime, timezone
+from urllib.parse import urlparse
 
 import httpx
 from sqlalchemy.orm import Session
@@ -66,10 +69,43 @@ def _run_command(command: str, emit: LineEmitter) -> bool:
     return proc.returncode == 0
 
 
-def _run_http(url: str, method: str, emit: LineEmitter) -> bool:
+def _resolves_to_private(url: str) -> bool:
+    """True if the URL's host resolves to a private/loopback/link-local/reserved IP.
+
+    Used as an SSRF guard so a public (demo) deployment cannot be used to reach
+    internal services or cloud metadata endpoints.
+    """
+    host = urlparse(url).hostname
+    if not host:
+        return True
+    try:
+        for info in socket.getaddrinfo(host, None):
+            ip = ipaddress.ip_address(info[4][0])
+            if (
+                ip.is_private
+                or ip.is_loopback
+                or ip.is_link_local
+                or ip.is_reserved
+                or ip.is_multicast
+                or ip.is_unspecified
+            ):
+                return True
+    except Exception:  # noqa: BLE001 - unresolvable host: treat as unsafe
+        return True
+    return False
+
+
+def _run_http(url: str, method: str, emit: LineEmitter, guard_private: bool) -> bool:
     try:
         emit(f"{method} {url}")
-        response = httpx.request(method, url, timeout=HTTP_TIMEOUT_SECONDS, follow_redirects=True)
+        if guard_private and _resolves_to_private(url):
+            emit("⚠️ Güvenlik: iç/özel ağ adreslerine istek engellendi (SSRF koruması).")
+            return False
+        # In guarded (demo) mode do not follow redirects — a redirect could point
+        # to an internal host that bypasses the pre-request check above.
+        response = httpx.request(
+            method, url, timeout=HTTP_TIMEOUT_SECONDS, follow_redirects=not guard_private
+        )
         emit(f"[HTTP {response.status_code} {response.reason_phrase}]")
         for line in response.text.splitlines():
             emit(line)
@@ -98,15 +134,18 @@ def execute_task(db: Session, task: models.Task, trigger: str = "manual") -> mod
     )
 
     collected: list[str] = []
+    collected_chars = 0
 
     def emit(line: str) -> None:
-        if sum(len(x) for x in collected) < MAX_OUTPUT_CHARS:
+        nonlocal collected_chars
+        if collected_chars < MAX_OUTPUT_CHARS:
             collected.append(line)
+            collected_chars += len(line) + 1
         manager.publish({"event": "log", "task_id": task.id, "run_id": run.id, "line": line})
 
     demo_mode = is_demo_mode()
     if task.task_type == "http":
-        ok = _run_http(task.url or "", task.http_method or "GET", emit)
+        ok = _run_http(task.url or "", task.http_method or "GET", emit, guard_private=demo_mode)
     elif demo_mode:
         # Public demo: never run arbitrary shell commands.
         emit("⚠️ Demo modu: komut çalıştırma güvenlik nedeniyle devre dışı.")

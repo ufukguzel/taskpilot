@@ -23,10 +23,18 @@ const STACK = ["FastAPI", "React", "TypeScript", "SQLAlchemy", "APScheduler", "W
 export function Landing({ onSuccess }: { onSuccess: () => void }) {
   const [mode, setMode] = useState<"landing" | "login">("landing");
   const [demoUser, setDemoUser] = useState<string | null>(null);
+  const [demoPass, setDemoPass] = useState<string>("demo1234");
   const [demoLoading, setDemoLoading] = useState(false);
+  const [demoError, setDemoError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.health().then((h) => setDemoUser(h.demo_mode ? h.demo_user : null)).catch(() => {});
+    api
+      .health()
+      .then((h) => {
+        setDemoUser(h.demo_mode ? h.demo_user : null);
+        if (h.demo_password) setDemoPass(h.demo_password);
+      })
+      .catch(() => {});
   }, []);
 
   useScrollReveal([mode]);
@@ -34,10 +42,12 @@ export function Landing({ onSuccess }: { onSuccess: () => void }) {
   async function tryDemo() {
     if (!demoUser) return;
     setDemoLoading(true);
+    setDemoError(null);
     try {
-      await api.login(demoUser, "demo1234");
+      await api.login(demoUser, demoPass);
       onSuccess();
     } catch {
+      setDemoError("Demo girişi başarısız oldu, tekrar dener misin?");
       setDemoLoading(false);
     }
   }
@@ -115,6 +125,7 @@ export function Landing({ onSuccess }: { onSuccess: () => void }) {
             </button>
           )}
         </div>
+        {demoError && <p className="animate-fade-up mt-4 text-sm text-rose-400">{demoError}</p>}
       </header>
 
       {/* features */}

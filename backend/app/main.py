@@ -57,4 +57,7 @@ def health() -> dict[str, object]:
         "status": "ok",
         "demo_mode": demo,
         "demo_user": os.getenv("DEMO_USERNAME", "demo") if demo else None,
+        # Published demo credential (public by design) so the UI stays in sync
+        # even if DEMO_PASSWORD is customized.
+        "demo_password": os.getenv("DEMO_PASSWORD", "demo1234") if demo else None,
     }

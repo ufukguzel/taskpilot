@@ -22,6 +22,7 @@ const STEPS = [
 export function Onboarding({ onClose, onSeeded }: { onClose: () => void; onSeeded: () => void }) {
   const [demo, setDemo] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     api.health().then((h) => setDemo(!!h.demo_mode)).catch(() => {});
@@ -29,6 +30,7 @@ export function Onboarding({ onClose, onSeeded }: { onClose: () => void; onSeede
 
   async function seedSamples() {
     setBusy(true);
+    setError(null);
     try {
       await api.createTask({
         name: "Site Sağlık Kontrolü",
@@ -44,11 +46,11 @@ export function Onboarding({ onClose, onSeeded }: { onClose: () => void; onSeede
         command: "echo Merhaba TaskPilot",
       });
       onSeeded();
+      onClose(); // only dismiss the tour once samples were actually created
     } catch {
-      /* ignore — user can still create tasks manually */
+      setError("Örnek görevler oluşturulamadı. Tekrar deneyebilir veya kendin başlayabilirsin.");
     } finally {
       setBusy(false);
-      onClose();
     }
   }
 
@@ -74,6 +76,12 @@ export function Onboarding({ onClose, onSeeded }: { onClose: () => void; onSeede
           <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
             🎭 Demo modundasın: güvenlik için komut çalıştırma devre dışı. <b>HTTP tipi</b> görevler
             tam çalışır — onlarla dene.
+          </div>
+        )}
+
+        {error && (
+          <div className="mt-4 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-xs text-rose-300">
+            {error}
           </div>
         )}
 

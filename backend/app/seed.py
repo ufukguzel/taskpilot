@@ -24,11 +24,15 @@ def _ensure_user(db: Session, username: str, password: str) -> None:
 def seed_admin() -> None:
     db = SessionLocal()
     try:
-        _ensure_user(
-            db,
-            os.getenv("ADMIN_USERNAME", "admin"),
-            os.getenv("ADMIN_PASSWORD", "admin123"),
-        )
+        # Seed the default admin ONLY on a fresh database. This avoids silently
+        # resurrecting a guessable admin/admin123 account after an operator has
+        # intentionally deleted or renamed it.
+        if db.query(models.User).count() == 0:
+            _ensure_user(
+                db,
+                os.getenv("ADMIN_USERNAME", "admin"),
+                os.getenv("ADMIN_PASSWORD", "admin123"),
+            )
         # In demo mode, publish a safe shared account so visitors can try the app.
         if is_demo_mode():
             _ensure_user(

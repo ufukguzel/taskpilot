@@ -28,12 +28,25 @@ def is_demo_mode() -> bool:
 
 
 def get_secret_key() -> str:
-    """JWT signing key. Env value wins; on hosting without one, generate a random
-    per-process key (sessions reset on restart — set SECRET_KEY to persist them).
+    """JWT signing key. Env value wins; on hosting without one, generate a key and
+    persist it to a file so it survives restarts and is shared across workers
+    (set SECRET_KEY explicitly to control it). Falls back to a dev key locally.
     """
     key = os.getenv("SECRET_KEY")
     if key:
         return key
     if is_hosted():
-        return secrets.token_hex(32)
+        path = os.getenv("SECRET_KEY_FILE", "/data/.secret_key")
+        try:
+            if os.path.exists(path):
+                stored = open(path, encoding="utf-8").read().strip()
+                if stored:
+                    return stored
+            generated = secrets.token_hex(32)
+            os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(generated)
+            return generated
+        except Exception:  # noqa: BLE001 - fall back to an in-memory key
+            return secrets.token_hex(32)
     return "dev-secret-change-me-in-production"

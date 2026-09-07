@@ -1,9 +1,56 @@
 <!doctype html>
-<html lang="en">
+<html lang="tr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TaskPilot — Automation Dashboard</title>
+    <meta name="theme-color" content="#0b0f1a" />
+
+    <title>TaskPilot — Otomasyon & Görev Zamanlama Panosu</title>
+    <meta
+      name="description"
+      content="TaskPilot; komut ve HTTP görevlerini cron ile zamanlayan, tek tıkla çalıştıran ve gerçek zamanlı loglayan full-stack otomasyon panosu. FastAPI + React ile geliştirildi."
+    />
+    <meta name="keywords" content="otomasyon, task scheduler, cron, FastAPI, React, TypeScript, WebSocket, dashboard, Ufuk Güzel" />
+    <meta name="author" content="Ufuk Güzel" />
+    <link rel="canonical" href="https://taskpilot-eta-six.vercel.app/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TaskPilot" />
+    <meta property="og:title" content="TaskPilot — Otomasyon & Görev Zamanlama Panosu" />
+    <meta
+      property="og:description"
+      content="Komut ve HTTP görevlerini zamanla, tek tıkla çalıştır ve gerçek zamanlı izle. Cron, canlı log, metrikler ve bildirimler tek panoda."
+    />
+    <meta property="og:url" content="https://taskpilot-eta-six.vercel.app/" />
+    <meta property="og:image" content="https://taskpilot-eta-six.vercel.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="tr_TR" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="TaskPilot — Otomasyon & Görev Zamanlama Panosu" />
+    <meta
+      name="twitter:description"
+      content="Komut ve HTTP görevlerini zamanla, tek tıkla çalıştır ve gerçek zamanlı izle."
+    />
+    <meta name="twitter:image" content="https://taskpilot-eta-six.vercel.app/og.png" />
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "TaskPilot",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web",
+        "description": "Cron zamanlama, gerçek zamanlı log, metrikler ve bildirimlerle full-stack otomasyon panosu.",
+        "url": "https://taskpilot-eta-six.vercel.app/",
+        "author": { "@type": "Person", "name": "Ufuk Güzel", "url": "https://ufukguzel.com" },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

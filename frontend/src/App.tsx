@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, auth, AuthError } from "./api";
-import { Login } from "./components/Login";
+import { Landing } from "./components/Landing";
+import { Onboarding } from "./components/Onboarding";
 import { StatsBar } from "./components/StatsBar";
 import { StatusBadge } from "./components/StatusBadge";
 import { TaskForm } from "./components/TaskForm";
@@ -21,6 +22,8 @@ export default function App() {
   const [historyTask, setHistoryTask] = useState<Task | null>(null);
   const [runningId, setRunningId] = useState<number | null>(null);
   const [view, setView] = useState<"tasks" | "metrics">("tasks");
+  const [query, setQuery] = useState("");
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -58,10 +61,15 @@ export default function App() {
 
   if (!authed) {
     return (
-      <Login
+      <Landing
         onSuccess={() => {
           setLoading(true);
           setAuthed(true);
+          try {
+            if (!localStorage.getItem("taskpilot_onboarded")) setShowOnboarding(true);
+          } catch {
+            /* storage unavailable */
+          }
         }}
       />
     );
@@ -95,6 +103,11 @@ export default function App() {
     await api.deleteTask(task.id);
     await refresh();
   }
+
+  const q = query.trim().toLowerCase();
+  const visibleTasks = q
+    ? tasks.filter((t) => `${t.name} ${t.description ?? ""}`.toLowerCase().includes(q))
+    : tasks;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -172,6 +185,17 @@ export default function App() {
         <StatsBar stats={stats} />
       </div>
 
+      {tasks.length > 0 && (
+        <div className="mb-3">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="🔍 Görev ara…"
+            className="w-full max-w-xs rounded-lg border border-edge bg-base px-3 py-2 text-sm outline-none focus:border-accent"
+          />
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-2xl border border-edge bg-panel/60">
         {loading ? (
           <p className="p-8 text-center text-sm text-slate-500">Yükleniyor…</p>
@@ -197,7 +221,14 @@ export default function App() {
               </tr>
             </thead>
             <tbody>
-              {tasks.map((task) => (
+              {visibleTasks.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-500">
+                    “{query}” ile eşleşen görev yok.
+                  </td>
+                </tr>
+              )}
+              {visibleTasks.map((task) => (
                 <tr key={task.id} className="border-b border-edge/50 last:border-0 hover:bg-panel2/40">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
@@ -305,6 +336,19 @@ export default function App() {
         <RunHistoryModal task={historyTask} onClose={() => setHistoryTask(null)} />
       )}
       {liveRun && <LiveConsole run={liveRun} onClose={dismiss} />}
+      {showOnboarding && (
+        <Onboarding
+          onClose={() => {
+            setShowOnboarding(false);
+            try {
+              localStorage.setItem("taskpilot_onboarded", "1");
+            } catch {
+              /* storage unavailable */
+            }
+          }}
+          onSeeded={refresh}
+        />
+      )}
     </div>
   );
 }

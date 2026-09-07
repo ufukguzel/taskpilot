@@ -1,26 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api } from "../api";
 
-export function Login({ onSuccess }: { onSuccess: () => void }) {
+export function Login({ onSuccess, onBack }: { onSuccess: () => void; onBack?: () => void }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [demoUser, setDemoUser] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Show the shared demo account only when the backend runs in demo mode.
-    api
-      .health()
-      .then((h) => setDemoUser(h.demo_mode ? h.demo_user : null))
-      .catch(() => {});
-  }, []);
-
-  function fillDemo() {
-    if (!demoUser) return;
-    setUsername(demoUser);
-    setPassword("demo1234");
-  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -84,13 +69,13 @@ export function Login({ onSuccess }: { onSuccess: () => void }) {
           {loading ? "Giriş yapılıyor…" : "Giriş yap"}
         </button>
 
-        {demoUser && (
+        {onBack && (
           <button
             type="button"
-            onClick={fillDemo}
-            className="mt-3 w-full rounded-lg border border-edge px-4 py-2 text-xs text-slate-400 hover:bg-panel2 hover:text-slate-200"
+            onClick={onBack}
+            className="mt-3 w-full text-center text-xs text-slate-500 hover:text-slate-300"
           >
-            🎭 Demo hesabıyla dene ({demoUser} / demo1234)
+            ← Tanıtıma dön
           </button>
         )}
       </form>

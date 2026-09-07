@@ -15,6 +15,59 @@ const CRON_PRESETS = [
   { label: "Her gün 09:00", value: "0 9 * * *" },
 ];
 
+interface Template {
+  label: string;
+  name: string;
+  description: string;
+  taskType: TaskType;
+  command?: string;
+  url?: string;
+  httpMethod?: HttpMethod;
+  schedule: string;
+  notify: boolean;
+}
+
+const TEMPLATES: Template[] = [
+  {
+    label: "🌐 URL sağlık kontrolü",
+    name: "Site Sağlık Kontrolü",
+    description: "Bir URL'nin ayakta olduğunu her 5 dakikada bir kontrol eder",
+    taskType: "http",
+    url: "https://api.github.com",
+    httpMethod: "GET",
+    schedule: "*/5 * * * *",
+    notify: true,
+  },
+  {
+    label: "🔔 Webhook tetikle",
+    name: "Günlük Webhook",
+    description: "Her sabah 09:00'da bir webhook'u tetikler",
+    taskType: "http",
+    url: "https://example.com/webhook",
+    httpMethod: "POST",
+    schedule: "0 9 * * *",
+    notify: false,
+  },
+  {
+    label: "💻 Script çalıştır",
+    name: "Gecelik Script",
+    description: "Her gece 02:00'de bir script çalıştırır",
+    taskType: "command",
+    command: "python /path/to/script.py",
+    schedule: "0 2 * * *",
+    notify: true,
+  },
+  {
+    label: "🗄️ Veritabanı yedeği",
+    name: "DB Yedeği",
+    description: "Her gece veritabanının yedeğini alır",
+    taskType: "command",
+    command: "pg_dump mydb > backup.sql",
+    schedule: "0 3 * * *",
+    notify: true,
+  },
+];
+
 export function TaskForm({ initial, onCancel, onSubmit }: Props) {
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
@@ -28,6 +81,17 @@ export function TaskForm({ initial, onCancel, onSubmit }: Props) {
   const [saving, setSaving] = useState(false);
 
   const isPreset = CRON_PRESETS.some((p) => p.value === schedule);
+
+  function applyTemplate(t: Template) {
+    setName(t.name);
+    setDescription(t.description);
+    setTaskType(t.taskType);
+    setCommand(t.command ?? "");
+    setUrl(t.url ?? "");
+    setHttpMethod(t.httpMethod ?? "GET");
+    setSchedule(t.schedule);
+    setNotifyOnFailure(t.notify);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -62,6 +126,24 @@ export function TaskForm({ initial, onCancel, onSubmit }: Props) {
         <h2 className="mb-4 text-lg font-semibold">
           {initial ? "Görevi Düzenle" : "Yeni Görev"}
         </h2>
+
+        {!initial && (
+          <div className="mb-5">
+            <div className="mb-2 text-xs font-medium text-slate-400">Hızlı şablonlar</div>
+            <div className="flex flex-wrap gap-2">
+              {TEMPLATES.map((t) => (
+                <button
+                  key={t.label}
+                  type="button"
+                  onClick={() => applyTemplate(t)}
+                  className="rounded-full border border-edge bg-base px-3 py-1.5 text-xs text-slate-300 transition hover:border-accent/50 hover:text-white"
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="space-y-4">
           <div>

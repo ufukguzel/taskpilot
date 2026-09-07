@@ -33,7 +33,7 @@ const TEMPLATES: Template[] = [
     name: "Site Sağlık Kontrolü",
     description: "Bir URL'nin ayakta olduğunu her 5 dakikada bir kontrol eder",
     taskType: "http",
-    url: "https://api.github.com",
+    url: "https://example.com",
     httpMethod: "GET",
     schedule: "*/5 * * * *",
     notify: true,

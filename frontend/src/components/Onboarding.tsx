@@ -31,10 +31,10 @@ export function Onboarding({ onClose, onSeeded }: { onClose: () => void; onSeede
     setBusy(true);
     try {
       await api.createTask({
-        name: "GitHub API Kontrolü",
-        description: "GitHub API'sinin ayakta olup olmadığını kontrol eder",
+        name: "Site Sağlık Kontrolü",
+        description: "Bir sitenin ayakta olup olmadığını kontrol eder (örnek)",
         task_type: "http",
-        url: "https://api.github.com",
+        url: "https://example.com",
         http_method: "GET",
       });
       await api.createTask({
